@@ -4,6 +4,7 @@
   "description": "A basic pictionary app",
   "dependencies": {
     "express": "^4.17.1",
-    "sketchpad": "^0.1.0"
+    "sketchpad": "^0.1.0",
+    "socket.io": "^2.3.0"
   }
 }
