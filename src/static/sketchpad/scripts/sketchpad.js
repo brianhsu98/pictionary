@@ -76,11 +76,7 @@ function Sketchpad(config) {
   this.reset();
 
   // Whenever strokes is changed, we call the strokeListener.
-  let strokeListener = config.strokeListener || null;
-  this.strokes.push = function() {
-    Array.prototype.push.apply(this, arguments);
-    strokeListener();
-  }
+  this.strokeListener = config.strokeListener || null;
 }
 
 //
@@ -135,6 +131,7 @@ Sketchpad.prototype._mouseUp = function(event) {
   if (this._sketching) {
     this.strokes.push($.extend(true, {}, this._currentStroke));
     this._sketching = false;
+    this.strokeListener();
   }
   this.canvas.removeEventListener('mousemove', this._mouseMove);
 };
@@ -169,6 +166,7 @@ Sketchpad.prototype._touchEnd = function(event) {
   if (this._sketching) {
     this.strokes.push($.extend(true, {}, this._currentStroke));
     this._sketching = false;
+    this.strokeListener();
   }
   this.canvas.removeEventListener('touchmove', this._touchMove);
 };
@@ -178,6 +176,7 @@ Sketchpad.prototype._touchCancel = function(event) {
   if (this._sketching) {
     this.strokes.push($.extend(true, {}, this._currentStroke));
     this._sketching = false;
+    this.strokeListener();
   }
   this.canvas.removeEventListener('touchmove', this._touchMove);
 };
@@ -187,6 +186,7 @@ Sketchpad.prototype._touchLeave = function(event) {
   if (this._sketching) {
     this.strokes.push($.extend(true, {}, this._currentStroke));
     this._sketching = false;
+    this.strokeListener();
   }
   this.canvas.removeEventListener('touchmove', this._touchMove);
 };
@@ -297,6 +297,7 @@ Sketchpad.prototype.undo = function() {
   if (stroke) {
     this.undoHistory.push(stroke);
     this.redraw(this.strokes);
+    this.strokeListener();
   }
 };
 
@@ -305,5 +306,6 @@ Sketchpad.prototype.redo = function() {
   if (stroke) {
     this.strokes.push(stroke);
     this.drawStroke(stroke);
+    this.strokeListener();
   }
 };

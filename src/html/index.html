@@ -23,13 +23,14 @@
 <!-- Sketchpad requires jQuery. -->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="/sketchpad/sketchpad.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
-
+	var socket = io();
 	function strokeListener() {
 		var serialized = sketchpad.toJSON()
-		
-
+		socket.emit('canvas update', serialized);
 	}
+
 
 	// Setting up the sketchpad and the toolbar.
 	var sketchpad;
@@ -62,6 +63,14 @@
 	function size(event) {
 		sketchpad.penSize = $(event.target).val();
 	}
+
+	socket.on('canvas update', function(canvas) {
+		let newCanvas = JSON.parse(canvas);
+		newCanvas.element = "#sketchpad"
+		newCanvas.strokeListener = strokeListener;
+		// Redrawing the canvas.
+		sketchpad = new Sketchpad(newCanvas);
+	})
 </script>
 
 </html>
