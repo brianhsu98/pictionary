@@ -4,73 +4,92 @@
 <head>
 	<meta charset="utf-8">
 	<title>Pictionary</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+		integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 </head>
 
 <body>
-	<div>
-		<canvas class="sketchpad" id="sketchpad"></canvas>
-	</div>
+	<div class="container mt-5">
+		<div class="jumbotron">
+			<h1 class="display-4">Pictionary</h1>
 
-	<div>
-		<button onclick="undo()">undo</button>
-		<button onclick="redo()">redo</button>
-		<input id="color-picker" type="color">
-		<input id="size-picker" type="range" min="1" max="50">
-		<button onclick="animateSketchpad()">animate</button>
+			<p class="lead">Play Pictionary! Choose a username, then create or join a room.</p>
+
+			<div class="input-group mb-3">
+				<div class="col-sm-5">
+					<input id="username" type="text" class="form-control" placeholder="Username" aria-label="Username"
+						aria-describedby="basic-addon2">
+				</div>
+			</div>
+			<div class="col-sm-5">
+				<button id="create-room" type="button" class="btn btn-primary btn-lg">Create Room</button>
+				<button id="join-room" type="button" class="btn btn-primary btn-lg">Join Room</button>
+			</div>
+		</div>
+
+	</div>
 	</div>
 </body>
 
-<!-- Sketchpad requires jQuery. -->
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script src="/sketchpad/sketchpad.js"></script>
-<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+	integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+	integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+	integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+
 <script>
-	var socket = io();
-	function strokeListener() {
-		var serialized = sketchpad.toJSON()
-		socket.emit('canvas update', serialized);
+	function getUsername() {
+		var userName = $("#username").val();
+		if (!userName) {
+			Swal.fire({
+				icon: 'error',
+				title: 'Please enter a username',
+			})
+			return;
+		}
+		return userName;
 	}
 
-
-	// Setting up the sketchpad and the toolbar.
-	var sketchpad;
-	$(document).ready(function () {
-		sketchpad = new Sketchpad({
-			element: '#sketchpad',
-			width: 400,
-			height: 400,
-			strokeListener: strokeListener,
-		});
-		$('#color-picker').change(color);
-		$('#color-picker').val('#000');
-		$('#size-picker').change(size);
-		$('#size-picker').val(1);
-
-	});
-
-	function undo() {
-		sketchpad.undo();
+	function generateRandomRoomId() {
+		return Math.random().toString(36).substr(2, 10);
 	}
 
-	function redo() {
-		sketchpad.redo();
+	function goToRoom(userName, roomId) {
+		window.location.href = "/rooms/" + roomId + "?name=" + userName;
 	}
 
-	function color(event) {
-		sketchpad.color = $(event.target).val();
-	}
+	$("#create-room").on('click', function() {
+		var userName = getUsername();
+		var roomId = generateRandomRoomId();
+		if (userName) {
+			goToRoom(userName, roomId)
+		}
+	})
 
-	function size(event) {
-		sketchpad.penSize = $(event.target).val();
-	}
-
-	socket.on('canvas update', function(canvas) {
-		let newCanvas = JSON.parse(canvas);
-		newCanvas.element = "#sketchpad"
-		newCanvas.strokeListener = strokeListener;
-		// Redrawing the canvas.
-		sketchpad = new Sketchpad(newCanvas);
+	$("#join-room").on('click', function () {
+		Swal.fire({
+			title: 'Enter a room ID.',
+			input: 'text',
+			showCancelButton: true,
+			inputValidator: (value) => {
+				if (!value) {
+					return 'Please enter a room ID.'
+				}
+			}
+		}).then((result) => {
+			var roomId = result.value;
+			var userName = getUsername();
+			if (userName) {
+				goToRoom(roomId, userName);
+			}
+		})
 	})
 </script>
+
 
 </html>

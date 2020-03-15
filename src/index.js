@@ -14,10 +14,7 @@ app.get('/', function(req, res) {
 
 
 app.get('/rooms/:roomId', function(req, res) {
-    // TODO: Implement functionality to ask for a name.
-    // I suppose we could just have name be a URL parameter.
-    // Then, in the index, we could have them put in a room ID and a name.
-    // not sure if i love that flow, but it could work.
+    // We need to make sure we select the next player out of only players that are currently logged in.
 
     var name = req.query.name;
     // Sockets require a "/" before the namespace.
