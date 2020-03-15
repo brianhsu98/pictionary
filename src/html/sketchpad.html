@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Pictionary</title>
+</head>
+
+<body>
+	<div>
+		<canvas class="sketchpad" id="sketchpad"></canvas>
+	</div>
+
+	<div>
+		<button onclick="undo()">undo</button>
+		<button onclick="redo()">redo</button>
+		<input id="color-picker" type="color">
+		<input id="size-picker" type="range" min="1" max="50">
+		<button onclick="animateSketchpad()">animate</button>
+	</div>
+</body>
+
+<!-- Sketchpad requires jQuery. -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="/sketchpad/sketchpad.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	function getRoomName() {
+		var currentURL = window.location.href.split('/');
+		return currentURL[currentURL.indexOf("rooms") + 1].split('?')[0];
+	}
+	var socket = io("/" + getRoomName());
+
+	function strokeListener() {
+		var serialized = sketchpad.toJSON()
+		socket.emit('canvas update', serialized);
+	}
+
+	// Setting up the sketchpad and the toolbar.
+	var sketchpad;
+	$(document).ready(function () {
+		sketchpad = new Sketchpad({
+			element: '#sketchpad',
+			width: 400,
+			height: 400,
+			strokeListener: strokeListener,
+		});
+		$('#color-picker').change(color);
+		$('#color-picker').val('#000');
+		$('#size-picker').change(size);
+		$('#size-picker').val(1);
+
+	});
+
+	function undo() {
+		sketchpad.undo();
+	}
+
+	function redo() {
+		sketchpad.redo();
+	}
+
+	function color(event) {
+		sketchpad.color = $(event.target).val();
+	}
+
+	function size(event) {
+		sketchpad.penSize = $(event.target).val();
+	}
+
+
+	socket.on('canvas update', function (canvas) {
+		let newCanvas = JSON.parse(canvas);
+		newCanvas.element = "#sketchpad"
+		newCanvas.strokeListener = strokeListener;
+		// Redrawing the canvas.
+		sketchpad = new Sketchpad(newCanvas);
+	})
+</script>
+
+</html>
